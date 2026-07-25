@@ -12,6 +12,9 @@ const groupNameSpan = document.getElementById('group-name-span');
 const groupNameList = document.getElementById('group-name-list');
 const contenderListDiv = document.getElementById('contender-list');
 
+const tabPeople = document.getElementById('tab-people');
+const tabThings = document.getElementById('tab-things');
+
 // Edit Modal Elements
 const editModal = document.getElementById('edit-modal');
 const editForm = document.getElementById('edit-form');
@@ -27,15 +30,26 @@ let editImageBase64 = '';
 let currentRotation = 0;
 let isSpinning = false;
 
-// Load Saved Data from localStorage on Startup
-let data = JSON.parse(localStorage.getItem('spinWheelData')) || {
-    people: [],
-    things: []
-};
+// Load Saved Data from localStorage safely on startup
+let data = { people: [], things: [] };
+try {
+    const savedData = localStorage.getItem('spinWheelData');
+    if (savedData) {
+        data = JSON.parse(savedData);
+        if (!data.people) data.people = [];
+        if (!data.things) data.things = [];
+    }
+} catch (e) {
+    console.error("Could not load saved data", e);
+}
 
 // Save Data to localStorage
 function saveData() {
-    localStorage.setItem('spinWheelData', JSON.stringify(data));
+    try {
+        localStorage.setItem('spinWheelData', JSON.stringify(data));
+    } catch (e) {
+        console.error("Storage limit reached or failed", e);
+    }
 }
 
 // Handle Image File Selection for New Items
@@ -60,13 +74,21 @@ editImageFile.addEventListener('change', function(e) {
     }
 });
 
+// Tab button click listeners
+tabPeople.addEventListener('click', () => switchGroup('people'));
+tabThings.addEventListener('click', () => switchGroup('things'));
+
 function switchGroup(groupName) {
     if (isSpinning) return;
     currentGroup = groupName;
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.textContent.toLowerCase().includes(groupName)) btn.classList.add('active');
-    });
+
+    if (groupName === 'people') {
+        tabPeople.classList.add('active');
+        tabThings.classList.remove('active');
+    } else {
+        tabThings.classList.add('active');
+        tabPeople.classList.remove('active');
+    }
 
     groupNameSpan.textContent = groupName.charAt(0).toUpperCase() + groupName.slice(1);
     groupNameList.textContent = groupName.charAt(0).toUpperCase() + groupName.slice(1);
@@ -79,7 +101,7 @@ function switchGroup(groupName) {
 itemForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = itemNameInput.value.trim();
-    const image = uploadedImageBase64 || `https://api.dicebear.com/8.x/bottts/svg?seed=${name}`;
+    const image = uploadedImageBase64 || `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`;
 
     if (name) {
         data[currentGroup].push({ name, image });
@@ -112,7 +134,7 @@ function resetCenter() {
     currentRotation = 0;
 }
 
-// Delete Contender
+// Delete Contender function attached globally
 window.deleteContender = function(index) {
     if (isSpinning) return;
     data[currentGroup].splice(index, 1);
@@ -137,6 +159,10 @@ editForm.addEventListener('submit', (e) => {
     if (editingIndex !== null) {
         data[currentGroup][editingIndex].name = editNameInput.value.trim();
         data[currentGroup][editingIndex].image = editImageBase64;
+        
+        // Force reset cached image object so wheel reloads new picture immediately
+        delete data[currentGroup][editingIndex].imgObj;
+
         saveData();
         editModal.classList.add('hidden');
         editingIndex = null;
@@ -162,12 +188,12 @@ function updateUI() {
         div.className = 'mini-item';
         div.innerHTML = `
             <div class="mini-info">
-                <img src="${item.image}">
+                <img src="${item.image}" alt="">
                 <span>${item.name}</span>
             </div>
             <div class="mini-actions">
-                <button class="btn btn-edit" onclick="openEditModal(${index})">Edit</button>
-                <button class="btn btn-delete" onclick="deleteContender(${index})">Delete</button>
+                <button type="button" class="btn btn-edit" onclick="openEditModal(${index})">Edit</button>
+                <button type="button" class="btn btn-delete" onclick="deleteContender(${index})">Delete</button>
             </div>
         `;
         contenderListDiv.appendChild(div);
@@ -176,7 +202,7 @@ function updateUI() {
     spinBtn.disabled = items.length < 2;
 }
 
-// Draw Wheel with Canvas (Images on Outer Perimeter touching the Center Circle)
+// Draw Wheel with Canvas
 function drawWheel() {
     const items = data[currentGroup];
     const n = items.length;
@@ -227,21 +253,19 @@ function drawWheel() {
         ctx.translate(centerX, centerY);
         ctx.rotate(angle);
 
-        // Position image near the outer edge
         const imgDist = 125; 
         const imgSize = 40;
 
-        // Draw text name
         ctx.textAlign = "right";
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 14px Segoe UI";
         ctx.fillText(item.name, outerRadius - 10, 5);
 
-        // Draw image asset if loaded
         if (!item.imgObj) {
             item.imgObj = new Image();
+            item.imgObj.crossOrigin = "anonymous";
             item.imgObj.src = item.image;
-            item.imgObj.onload = () => drawWheel(); // Redraw once loaded
+            item.imgObj.onload = () => drawWheel(); 
         } else if (item.imgObj.complete) {
             ctx.save();
             ctx.beginPath();
@@ -250,7 +274,6 @@ function drawWheel() {
             ctx.drawImage(item.imgObj, imgDist - imgSize / 2, -imgSize / 2, imgSize, imgSize);
             ctx.restore();
             
-            // Gold border around picture
             ctx.beginPath();
             ctx.arc(imgDist, 0, imgSize / 2, 0, Math.PI * 2);
             ctx.lineWidth = 2;
@@ -261,7 +284,7 @@ function drawWheel() {
         ctx.restore();
     });
 
-    // 3. Mask Center Hole matching CSS size (Radius 75 matches 150px width)
+    // 3. Mask Center Hole
     ctx.beginPath();
     ctx.arc(centerX, centerY, 75, 0, Math.PI * 2);
     ctx.fillStyle = '#1a1a2e';
@@ -283,11 +306,9 @@ spinBtn.addEventListener('click', () => {
     const n = items.length;
     const sliceAngle = 360 / n;
     
-    // Pick random winner index
     const winningIndex = Math.floor(Math.random() * n);
     
-    // Calculate rotation angle so pointer lands on winning slice
-    const randomFullSpins = 5 * 360; // 5 full rotations
+    const randomFullSpins = 5 * 360; 
     const targetAngleFromTop = (n - winningIndex) * sliceAngle - (sliceAngle / 2);
     const totalRotation = currentRotation + randomFullSpins + (targetAngleFromTop - (currentRotation % 360));
 
@@ -295,7 +316,6 @@ spinBtn.addEventListener('click', () => {
     canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)';
     canvas.style.transform = `rotate(${currentRotation}deg)`;
 
-    // Reveal winner after spin completes
     setTimeout(() => {
         const winner = items[winningIndex];
         centerText.classList.add('hidden');
