@@ -15,16 +15,17 @@ body {
     display: flex;
     justify-content: center;
     min-height: 100vh;
+    padding-bottom: 30px;
 }
 
 .main-container {
     width: 100%;
-    max-width: 600px;
-    padding: 20px;
+    max-width: 500px;
+    padding: 15px;
     box-sizing: border-box;
 }
 
-h1 { text-align: center; color: var(--gold); margin-bottom: 10px; }
+h1 { text-align: center; color: var(--gold); margin-bottom: 10px; font-size: 1.5rem; }
 
 .card {
     background: var(--card-bg);
@@ -38,7 +39,7 @@ h1 { text-align: center; color: var(--gold); margin-bottom: 10px; }
 .tab-buttons {
     display: flex;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .tab-btn {
@@ -59,20 +60,41 @@ h1 { text-align: center; color: var(--gold); margin-bottom: 10px; }
 
 #item-form {
     display: flex;
+    flex-direction: column;
     gap: 10px;
 }
 
-input {
-    flex: 1;
+input[type="text"] {
     padding: 10px;
     border-radius: 6px;
     border: 1px solid #444;
     background: #0f0f1a;
     color: white;
+    font-size: 1rem;
 }
 
-.btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-.btn-add { background: #28a745; color: white; }
+/* File Upload Button Design */
+.file-upload-btn {
+    background: #4a4e69;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.file-upload-btn:hover { background: #6c757d; }
+
+.file-chosen {
+    font-size: 0.8rem;
+    color: #a0a0c0;
+    margin-top: -5px;
+}
+
+.btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem;}
+.btn-add { background: #28a745; color: white; margin-top: 5px;}
 .btn-add:hover { background: #32c353; }
 
 /* Arena Styles */
@@ -86,66 +108,107 @@ input {
 
 .wheel-container {
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: 320px;
+    height: 320px;
 }
 
-#wheelCanvas {
+/* Wheel container arranged as a circle with items distributed around circumference */
+.wheel {
+    position: relative;
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    transition: transform 4s ease-out; /* Spin animation defined here */
+    border: 6px solid var(--gold);
+    background: #0f0f1a;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    overflow: hidden;
 }
 
-/* The triangle marker */
+/* Individual items placed on the wheel ring */
+.wheel-item {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    left: 50%;
+    margin-top: -25px;
+    margin-left: -25px;
+    border-radius: 50%;
+    background: #252538;
+    border: 2px solid #555;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.wheel-item img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Shining effect when spinning */
+.wheel-item.shine {
+    border-color: var(--gold);
+    background: #ff4757;
+    transform: scale(1.25);
+    box-shadow: 0 0 15px var(--gold);
+    z-index: 5;
+}
+
+/* The triangle marker pointing down to the wheel */
 .marker {
     position: absolute;
-    top: -10px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 25px solid var(--gold);
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 22px solid var(--gold);
     z-index: 10;
 }
 
-/* The circle in the very center */
+/* Center Winner Display Circle */
 .center-circle {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100px; /* Size of the hole */
-    height: 100px;
+    width: 90px;
+    height: 90px;
     background: var(--bg-color);
     border-radius: 50%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     border: 4px solid var(--gold);
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    pointer-events: none; /* clicks pass through to canvas */
+    z-index: 8;
+    text-align: center;
 }
 
 #center-img {
-    width: 100%;
-    height: 100%;
+    width: 55px;
+    height: 55px;
     object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
 }
 
 #center-text {
     font-weight: bold;
     color: var(--gold);
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
-#center-text.hidden, #center-img.hidden {
-    display: none;
-}
+.hidden { display: none !important; }
 
 .controls {
     display: flex;
@@ -157,22 +220,23 @@ input {
 .btn-spin {
     background: var(--accent);
     color: white;
-    font-size: 1.2rem;
-    padding: 15px 40px;
+    font-size: 1.1rem;
+    padding: 12px 30px;
+    flex: 2;
 }
 .btn-spin:hover { background: var(--accent-hover); }
 .btn-spin:disabled { background: #555; cursor: not-allowed; }
 
-.btn-reset { background: #6c757d; color: white; }
+.btn-reset { background: #6c757d; color: white; flex: 1; }
 .btn-reset:hover { background: #5a6268; }
 
 /* Small Contender List */
-.list-card h3 { margin-top: 0; font-size: 1.1rem; color: #aaa;}
+.list-card h3 { margin-top: 0; font-size: 1rem; color: #aaa;}
 .contender-small-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    max-height: 100px;
+    max-height: 90px;
     overflow-y: auto;
 }
 
@@ -183,8 +247,8 @@ input {
     font-size: 0.85rem;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
 }
 .mini-item img {
-    width: 20px; height: 20px; border-radius: 50%; object-fit: cover;
+    width: 22px; height: 22px; border-radius: 50%; object-fit: cover;
 }
