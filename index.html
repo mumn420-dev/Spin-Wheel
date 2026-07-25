@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spin Wheel Game</title>
+    <title>Spin the Wheel Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,18 +18,27 @@
                 <button class="tab-btn" onclick="switchGroup('things')">Things Group</button>
             </div>
             
-            <!-- Registration Form (Specific to active group) -->
+            <!-- Registration Form with Image File Button -->
             <form id="item-form">
                 <input type="text" id="item-name" placeholder="Name or Item" required>
-                <input type="text" id="item-image" placeholder="Image URL (Highly Recommended)">
+                
+                <!-- Custom File Upload Button -->
+                <label for="item-image-file" class="file-upload-btn">
+                    📷 Choose Picture
+                </label>
+                <input type="file" id="item-image-file" accept="image/*" style="display: none;">
+                
                 <button type="submit" class="btn btn-add">Add to <span id="group-name-span">People</span></button>
             </form>
+            <div id="file-chosen-text" class="file-chosen">No picture chosen</div>
         </div>
 
         <!-- Wheel and Winner Arena -->
         <div class="arena-card">
             <div class="wheel-container">
-                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div id="wheel" class="wheel">
+                    <!-- Slices and items are dynamically injected here via JS -->
+                </div>
                 <div id="center-winner" class="center-circle">
                     <img id="center-img" src="" alt="" class="hidden">
                     <span id="center-text">SPIN</span>
