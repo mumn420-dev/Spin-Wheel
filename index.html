@@ -14,8 +14,8 @@
         <!-- Group Management -->
         <div class="card group-controls">
             <div class="tab-buttons">
-                <button class="tab-btn active" onclick="switchGroup('people')">People Group</button>
-                <button class="tab-btn" onclick="switchGroup('things')">Things Group</button>
+                <button type="button" class="tab-btn active" id="tab-people">People Group</button>
+                <button type="button" class="tab-btn" id="tab-things">Things Group</button>
             </div>
             
             <!-- Registration Form -->
@@ -35,7 +35,6 @@
         <!-- Wheel and Winner Arena -->
         <div class="arena-card">
             <div class="wheel-container">
-                <!-- Canvas draws slices and outer ring pictures -->
                 <canvas id="wheelCanvas" width="360" height="360"></canvas>
                 
                 <!-- Large Center Winner Circle -->
@@ -47,8 +46,8 @@
             </div>
             
             <div class="controls">
-                <button id="spin-btn" class="btn btn-spin">SPIN WHEEL</button>
-                <button id="reset-btn" class="btn btn-reset">Reset Group</button>
+                <button type="button" id="spin-btn" class="btn btn-spin">SPIN WHEEL</button>
+                <button type="button" id="reset-btn" class="btn btn-reset">Reset Group</button>
             </div>
         </div>
 
