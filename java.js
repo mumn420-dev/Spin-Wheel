@@ -30,29 +30,29 @@ let editImageBase64 = '';
 let currentRotation = 0;
 let isSpinning = false;
 
-// Load Saved Data from localStorage safely on startup
+// Robust localStorage loading with fallback structure
 let data = { people: [], things: [] };
 try {
     const savedData = localStorage.getItem('spinWheelData');
     if (savedData) {
-        data = JSON.parse(savedData);
-        if (!data.people) data.people = [];
-        if (!data.things) data.things = [];
+        const parsed = JSON.parse(savedData);
+        if (parsed.people) data.people = parsed.people;
+        if (parsed.things) data.things = parsed.things;
     }
 } catch (e) {
-    console.error("Could not load saved data", e);
+    console.error("Error loading stored data:", e);
 }
 
-// Save Data to localStorage
+// Reliable saveData wrapper
 function saveData() {
     try {
         localStorage.setItem('spinWheelData', JSON.stringify(data));
     } catch (e) {
-        console.error("Storage limit reached or failed", e);
+        console.error("Error saving data to localStorage:", e);
     }
 }
 
-// Handle Image File Selection for New Items
+// Image File Selection Handlers
 itemImageFile.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -63,7 +63,6 @@ itemImageFile.addEventListener('change', function(e) {
     }
 });
 
-// Handle Image File Selection for Editing Items
 editImageFile.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -74,7 +73,7 @@ editImageFile.addEventListener('change', function(e) {
     }
 });
 
-// Tab button click listeners
+// Group Switching Tabs
 tabPeople.addEventListener('click', () => switchGroup('people'));
 tabThings.addEventListener('click', () => switchGroup('things'));
 
@@ -97,7 +96,7 @@ function switchGroup(groupName) {
     updateUI();
 }
 
-// Add Item
+// Add Contender Form Submission
 itemForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = itemNameInput.value.trim();
@@ -106,22 +105,26 @@ itemForm.addEventListener('submit', (e) => {
     if (name) {
         data[currentGroup].push({ name, image });
         saveData();
+        
         itemNameInput.value = '';
         itemImageFile.value = '';
         fileChosenText.textContent = 'No picture chosen';
         uploadedImageBase64 = '';
+        
         resetCenter();
         updateUI();
     }
 });
 
-// Reset Group
+// Reset Current Group
 resetBtn.addEventListener('click', () => {
     if (isSpinning) return;
-    data[currentGroup] = [];
-    saveData();
-    resetCenter();
-    updateUI();
+    if (confirm(`Are you sure you want to reset all contenders in the ${currentGroup} group?`)) {
+        data[currentGroup] = [];
+        saveData();
+        resetCenter();
+        updateUI();
+    }
 });
 
 function resetCenter() {
@@ -134,13 +137,16 @@ function resetCenter() {
     currentRotation = 0;
 }
 
-// Delete Contender function attached globally
+// Delete Contender with Warning Confirmation
 window.deleteContender = function(index) {
     if (isSpinning) return;
-    data[currentGroup].splice(index, 1);
-    saveData();
-    resetCenter();
-    updateUI();
+    const item = data[currentGroup][index];
+    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+        data[currentGroup].splice(index, 1);
+        saveData();
+        resetCenter();
+        updateUI();
+    }
 };
 
 // Open Edit Modal
@@ -149,7 +155,7 @@ window.openEditModal = function(index) {
     editingIndex = index;
     const item = data[currentGroup][index];
     editNameInput.value = item.name;
-    editImageBase64 = item.image; // default to existing
+    editImageBase64 = item.image;
     editFileText.textContent = 'Keep current picture';
     editModal.classList.remove('hidden');
 };
@@ -160,7 +166,7 @@ editForm.addEventListener('submit', (e) => {
         data[currentGroup][editingIndex].name = editNameInput.value.trim();
         data[currentGroup][editingIndex].image = editImageBase64;
         
-        // Force reset cached image object so wheel reloads new picture immediately
+        // Clear cached image object reference so canvas instantly loads the new picture
         delete data[currentGroup][editingIndex].imgObj;
 
         saveData();
@@ -176,7 +182,7 @@ cancelEditBtn.addEventListener('click', () => {
     editingIndex = null;
 });
 
-// Update UI and Draw Wheel Canvas
+// Update User Interface and Redraw Wheel Canvas
 function updateUI() {
     drawWheel();
 
@@ -202,13 +208,13 @@ function updateUI() {
     spinBtn.disabled = items.length < 2;
 }
 
-// Draw Wheel with Canvas
+// Draw Wheel Canvas (With clean image and text spacing to avoid overlaps)
 function drawWheel() {
     const items = data[currentGroup];
     const n = items.length;
-    const centerX = 180;
-    const centerY = 180;
-    const outerRadius = 175;
+    const centerX = 190;
+    const centerY = 190;
+    const outerRadius = 185;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -245,7 +251,7 @@ function drawWheel() {
         ctx.stroke();
     }
 
-    // 2. Draw Images and Names around the Outer Ring
+    // 2. Draw Images and Names around the Wheel Perimeter
     items.forEach((item, i) => {
         const angle = i * arcSize + arcSize / 2;
         
@@ -253,14 +259,16 @@ function drawWheel() {
         ctx.translate(centerX, centerY);
         ctx.rotate(angle);
 
-        const imgDist = 125; 
-        const imgSize = 40;
+        const imgDist = 135; 
+        const imgSize = 42;
 
+        // Draw text name neatly positioned inward from the outer rim
         ctx.textAlign = "right";
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 14px Segoe UI";
-        ctx.fillText(item.name, outerRadius - 10, 5);
+        ctx.font = "bold 13px Segoe UI";
+        ctx.fillText(item.name, outerRadius - 15, 4);
 
+        // Load or draw image
         if (!item.imgObj) {
             item.imgObj = new Image();
             item.imgObj.crossOrigin = "anonymous";
@@ -274,9 +282,10 @@ function drawWheel() {
             ctx.drawImage(item.imgObj, imgDist - imgSize / 2, -imgSize / 2, imgSize, imgSize);
             ctx.restore();
             
+            // Gold ring around contestant image
             ctx.beginPath();
             ctx.arc(imgDist, 0, imgSize / 2, 0, Math.PI * 2);
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.strokeStyle = '#ffd700';
             ctx.stroke();
         }
@@ -286,7 +295,7 @@ function drawWheel() {
 
     // 3. Mask Center Hole
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 75, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 78, 0, Math.PI * 2);
     ctx.fillStyle = '#1a1a2e';
     ctx.fill();
     ctx.lineWidth = 5;
@@ -294,7 +303,7 @@ function drawWheel() {
     ctx.stroke();
 }
 
-// Spin Wheel Physics Action
+// Spin Wheel Physics Action (Accurately aligning pointer at top to selected winner)
 spinBtn.addEventListener('click', () => {
     const items = data[currentGroup];
     if (items.length < 2 || isSpinning) return;
@@ -306,16 +315,19 @@ spinBtn.addEventListener('click', () => {
     const n = items.length;
     const sliceAngle = 360 / n;
     
+    // Choose winning index randomly
     const winningIndex = Math.floor(Math.random() * n);
     
-    const randomFullSpins = 5 * 360; 
-    const targetAngleFromTop = (n - winningIndex) * sliceAngle - (sliceAngle / 2);
-    const totalRotation = currentRotation + randomFullSpins + (targetAngleFromTop - (currentRotation % 360));
+    // Compute exact rotation to ensure top pointer lands precisely on the winning slice center
+    const randomFullSpins = 6 * 360; // 6 full rotations for smooth momentum
+    const targetSliceCenterAngle = winningIndex * sliceAngle + (sliceAngle / 2);
+    const targetRotation = randomFullSpins + (360 - targetSliceCenterAngle);
 
-    currentRotation = totalRotation;
-    canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)';
+    currentRotation = targetRotation;
+    canvas.style.transition = 'transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)';
     canvas.style.transform = `rotate(${currentRotation}deg)`;
 
+    // Reveal winner cleanly after spin animation completes
     setTimeout(() => {
         const winner = items[winningIndex];
         centerText.classList.add('hidden');
@@ -326,5 +338,5 @@ spinBtn.addEventListener('click', () => {
     }, 4000);
 });
 
-// Initial load
+// Initial app load
 updateUI();
