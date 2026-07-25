@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin Wheel Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>🎉 Spin the Wheel! 🎉</h1>
+
+        <!-- Group Management -->
+        <div class="card group-controls">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchGroup('people')">People Group</button>
+                <button class="tab-btn" onclick="switchGroup('things')">Things Group</button>
+            </div>
+            
+            <!-- Registration Form (Specific to active group) -->
+            <form id="item-form">
+                <input type="text" id="item-name" placeholder="Name or Item" required>
+                <input type="text" id="item-image" placeholder="Image URL (Highly Recommended)">
+                <button type="submit" class="btn btn-add">Add to <span id="group-name-span">People</span></button>
+            </form>
+        </div>
+
+        <!-- Wheel and Winner Arena -->
+        <div class="arena-card">
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div id="center-winner" class="center-circle">
+                    <img id="center-img" src="" alt="" class="hidden">
+                    <span id="center-text">SPIN</span>
+                </div>
+                <div class="marker"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="spin-btn" class="btn btn-spin">SPIN WHEEL</button>
+                <button id="reset-btn" class="btn btn-reset">Reset Group</button>
+            </div>
+        </div>
+
+        <!-- Contender List for current group -->
+        <div class="card list-card">
+            <h3>Contenders in <span id="group-name-list">People</span></h3>
+            <div id="contender-list" class="contender-small-list">
+                <!-- Mini cards appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="java.js"></script>
+</body>
+</html>
