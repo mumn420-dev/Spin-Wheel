@@ -1,0 +1,190 @@
+:root {
+    --bg-color: #1a1a2e;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --text-color: #fff;
+    --accent: #e94560;
+    --accent-hover: #ff577f;
+    --gold: #ffd700;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.main-container {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h1 { text-align: center; color: var(--gold); margin-bottom: 10px; }
+
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Tab Styles */
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    color: #aaa;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.tab-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+#item-form {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #0f0f1a;
+    color: white;
+}
+
+.btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.btn-add { background: #28a745; color: white; }
+.btn-add:hover { background: #32c353; }
+
+/* Arena Styles */
+.arena-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.wheel-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+}
+
+#wheelCanvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transition: transform 4s ease-out; /* Spin animation defined here */
+}
+
+/* The triangle marker */
+.marker {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 25px solid var(--gold);
+    z-index: 10;
+}
+
+/* The circle in the very center */
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px; /* Size of the hole */
+    height: 100px;
+    background: var(--bg-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border: 4px solid var(--gold);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    pointer-events: none; /* clicks pass through to canvas */
+}
+
+#center-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#center-text {
+    font-weight: bold;
+    color: var(--gold);
+    font-size: 1.2rem;
+}
+
+#center-text.hidden, #center-img.hidden {
+    display: none;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-spin {
+    background: var(--accent);
+    color: white;
+    font-size: 1.2rem;
+    padding: 15px 40px;
+}
+.btn-spin:hover { background: var(--accent-hover); }
+.btn-spin:disabled { background: #555; cursor: not-allowed; }
+
+.btn-reset { background: #6c757d; color: white; }
+.btn-reset:hover { background: #5a6268; }
+
+/* Small Contender List */
+.list-card h3 { margin-top: 0; font-size: 1.1rem; color: #aaa;}
+.contender-small-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.mini-item {
+    background: rgba(255,255,255,0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.mini-item img {
+    width: 20px; height: 20px; border-radius: 50%; object-fit: cover;
+}
