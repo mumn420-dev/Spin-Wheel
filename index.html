@@ -18,11 +18,10 @@
                 <button class="tab-btn" onclick="switchGroup('things')">Things Group</button>
             </div>
             
-            <!-- Registration Form with Image File Button -->
+            <!-- Registration Form -->
             <form id="item-form">
                 <input type="text" id="item-name" placeholder="Name or Item" required>
                 
-                <!-- Custom File Upload Button -->
                 <label for="item-image-file" class="file-upload-btn">
                     📷 Choose Picture
                 </label>
@@ -36,9 +35,10 @@
         <!-- Wheel and Winner Arena -->
         <div class="arena-card">
             <div class="wheel-container">
-                <div id="wheel" class="wheel">
-                    <!-- Slices and items are dynamically injected here via JS -->
-                </div>
+                <!-- Canvas draws slices and outer ring pictures -->
+                <canvas id="wheelCanvas" width="360" height="360"></canvas>
+                
+                <!-- Large Center Winner Circle -->
                 <div id="center-winner" class="center-circle">
                     <img id="center-img" src="" alt="" class="hidden">
                     <span id="center-text">SPIN</span>
@@ -52,12 +52,29 @@
             </div>
         </div>
 
-        <!-- Contender List for current group -->
+        <!-- Contender List with Edit/Delete Controls -->
         <div class="card list-card">
             <h3>Contenders in <span id="group-name-list">People</span></h3>
             <div id="contender-list" class="contender-small-list">
-                <!-- Mini cards appear here -->
+                <!-- Editable mini cards appear here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Contender</h3>
+            <form id="edit-form">
+                <input type="text" id="edit-name-input" required>
+                <label for="edit-image-file" class="file-upload-btn">📷 Change Picture</label>
+                <input type="file" id="edit-image-file" accept="image/*" style="display: none;">
+                <div id="edit-file-text" class="file-chosen">Keep current picture</div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-add">Save</button>
+                    <button type="button" id="cancel-edit-btn" class="btn btn-reset">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
