@@ -105,8 +105,8 @@ input[type="text"] {
 
 .wheel-container {
     position: relative;
-    width: 360px;
-    height: 360px;
+    width: 380px;
+    height: 380px;
 }
 
 #wheelCanvas {
@@ -114,19 +114,20 @@ input[type="text"] {
     height: 100%;
     border-radius: 50%;
     box-shadow: 0 0 20px rgba(0,0,0,0.6);
-    transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
+    /* Clean, consistent cubic-bezier timing function for smooth spins */
+    transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1);
 }
 
 .marker {
     position: absolute;
-    top: -10px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 12px solid transparent;
     border-right: 12px solid transparent;
-    border-top: 22px solid var(--gold);
+    border-top: 24px solid var(--gold);
     z-index: 10;
 }
 
