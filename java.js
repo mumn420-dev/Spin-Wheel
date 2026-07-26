@@ -30,7 +30,7 @@ let editImageBase64 = '';
 let currentRotation = 0;
 let isSpinning = false;
 
-// Robust localStorage loading with fallback structure
+// Robust localStorage loading
 let data = { people: [], things: [] };
 try {
     const savedData = localStorage.getItem('spinWheelData');
@@ -48,8 +48,35 @@ function saveData() {
     try {
         localStorage.setItem('spinWheelData', JSON.stringify(data));
     } catch (e) {
+        alert("Storage limit reached! Try choosing smaller pictures.");
         console.error("Error saving data to localStorage:", e);
     }
+}
+
+// Helper to compress uploaded images so they fit securely inside localStorage
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 200; // Limit dimensions for lightweight storage
+            if (width > height) {
+                if (width > maxDim) { height *= maxDim / width; width = maxDim; }
+            } else {
+                if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+            }
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.drawImage(img, 0, 0, width, height);
+            callback(tempCanvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 // Image File Selection Handlers
@@ -57,9 +84,9 @@ itemImageFile.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         fileChosenText.textContent = file.name;
-        const reader = new FileReader();
-        reader.onload = function(evt) { uploadedImageBase64 = evt.target.result; };
-        reader.readAsDataURL(file);
+        compressImage(file, (base64Result) => {
+            uploadedImageBase64 = base64Result;
+        });
     }
 });
 
@@ -67,9 +94,9 @@ editImageFile.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         editFileText.textContent = file.name;
-        const reader = new FileReader();
-        reader.onload = function(evt) { editImageBase64 = evt.target.result; };
-        reader.readAsDataURL(file);
+        compressImage(file, (base64Result) => {
+            editImageBase64 = base64Result;
+        });
     }
 });
 
@@ -208,7 +235,7 @@ function updateUI() {
     spinBtn.disabled = items.length < 2;
 }
 
-// Draw Wheel Canvas (With clean image and text spacing to avoid overlaps)
+// Draw Wheel Canvas (With non-overlapping name and picture layout)
 function drawWheel() {
     const items = data[currentGroup];
     const n = items.length;
@@ -251,7 +278,7 @@ function drawWheel() {
         ctx.stroke();
     }
 
-    // 2. Draw Images and Names around the Wheel Perimeter
+    // 2. Draw Images and Names (Picture closer to center, Name closer to outer rim so they never overlap)
     items.forEach((item, i) => {
         const angle = i * arcSize + arcSize / 2;
         
@@ -259,14 +286,18 @@ function drawWheel() {
         ctx.translate(centerX, centerY);
         ctx.rotate(angle);
 
-        const imgDist = 135; 
-        const imgSize = 42;
+        const imgDist = 105;   // Picture inner position
+        const imgSize = 36;    // Picture size
+        const textDist = 150;  // Name outer position (above picture)
 
-        // Draw text name neatly positioned inward from the outer rim
-        ctx.textAlign = "right";
+        // Draw text name clearly visible near the outer rim
+        ctx.save();
+        ctx.rotate(Math.PI / 2); // Rotate text upright relative to slice
+        ctx.textAlign = "center";
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 13px Segoe UI";
-        ctx.fillText(item.name, outerRadius - 15, 4);
+        ctx.font = "bold 12px Segoe UI";
+        ctx.fillText(item.name, 0, -textDist);
+        ctx.restore();
 
         // Load or draw image
         if (!item.imgObj) {
@@ -285,7 +316,7 @@ function drawWheel() {
             // Gold ring around contestant image
             ctx.beginPath();
             ctx.arc(imgDist, 0, imgSize / 2, 0, Math.PI * 2);
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.strokeStyle = '#ffd700';
             ctx.stroke();
         }
@@ -295,7 +326,7 @@ function drawWheel() {
 
     // 3. Mask Center Hole
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 78, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 75, 0, Math.PI * 2);
     ctx.fillStyle = '#1a1a2e';
     ctx.fill();
     ctx.lineWidth = 5;
@@ -303,7 +334,7 @@ function drawWheel() {
     ctx.stroke();
 }
 
-// Spin Wheel Physics Action (Accurately aligning pointer at top to selected winner)
+// Spin Wheel Physics Action
 spinBtn.addEventListener('click', () => {
     const items = data[currentGroup];
     if (items.length < 2 || isSpinning) return;
@@ -315,19 +346,16 @@ spinBtn.addEventListener('click', () => {
     const n = items.length;
     const sliceAngle = 360 / n;
     
-    // Choose winning index randomly
     const winningIndex = Math.floor(Math.random() * n);
     
-    // Compute exact rotation to ensure top pointer lands precisely on the winning slice center
-    const randomFullSpins = 6 * 360; // 6 full rotations for smooth momentum
+    const randomFullSpins = 6 * 360; 
     const targetSliceCenterAngle = winningIndex * sliceAngle + (sliceAngle / 2);
     const targetRotation = randomFullSpins + (360 - targetSliceCenterAngle);
 
     currentRotation = targetRotation;
-    canvas.style.transition = 'transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)';
+    canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.15, 1)';
     canvas.style.transform = `rotate(${currentRotation}deg)`;
 
-    // Reveal winner cleanly after spin animation completes
     setTimeout(() => {
         const winner = items[winningIndex];
         centerText.classList.add('hidden');
